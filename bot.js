@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const { Client, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+require("dotenv").config();
 
 // const eventsPath = path.join(__dirname,'events');
 // const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
@@ -56,5 +56,5 @@ client.on('typingStart', async typing => {
 })
 
 // Login to Discord with your client's token
-client.login(token);
+client.login(process.env.BOT_TOKEN);
 
