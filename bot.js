@@ -12,23 +12,20 @@ const client = new Client({ intents: [
                                         GatewayIntentBits.DirectMessages, 
                                         GatewayIntentBits.MessageContent, 
                                         GatewayIntentBits.DirectMessageTyping,
-                                        GatewayIntentBits.GuildMessageTyping
+                                        GatewayIntentBits.GuildMessageTyping,
+                                        GatewayIntentBits.GuildMembers,
+                                        GatewayIntentBits.GuildPresences
                                     ] });
-// for (const file of eventFiles) {
-// 	const filePath = path.join(eventsPath, file);
-// 	const event = require(filePath);
-// 	if (event.once) {
-// 		client.once(event.name, (...args) => event.execute(...args));
-// 	} else {
-// 		client.on(event.name, (...args) => event.execute(...args));
-// 	}
-// }
+                                    
 
 client.once('ready', c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
 client.on('messageCreate', message => {
+    if(message.guild === null){
+        return;
+    }
     if(message.author.id == client.user.id){
         if(message.content.includes('@everyone')){
             message.delete();
@@ -49,11 +46,39 @@ client.on('messageCreate', message => {
     }
 });
 
-client.on('typingStart', async typing => {
-    if(typing.user.id == '250738681197887489'){
-        // typing.channel.send('Ta gueule Renaud !');
-    };
+// client.on('typingStart', async typing => {
+//     if(typing.user.id == '250738681197887489'){
+//         // typing.channel.send('Ta gueule Renaud !');
+//     };
+// })
+
+// client.on('userUpdate', (oldUser,newUser) => {
+//     if(oldUser.id == "315156432100261899"){
+//         // console.log(newUser.user);
+//     }
+// })
+client.on('guildMemberUpdate', (oldUser,newUser) => {
+    let Bulletura = client.users.cache.find(user => user.id == '356512651150360577');
+    if(newUser.id == "315156432100261899"){
+        console.log(newUser);
+        if(newUser.avatar != null){
+            Bulletura.send(newUser.avatar);
+        }
+        if(newUser.nickname == null){
+
+            // Bulletura.send(newUser.user.username);
+        } else{
+            // Bulletura.send(newUser.nickname)
+        }
+        
+    }
 })
+// client.on('presenceUpdate', (oldUser,newUser) => {
+//     if(oldUser.id == "315156432100261899"){
+//         // console.log(newUser.user);
+        
+//     }
+// })
 
 // Login to Discord with your client's token
 client.login(process.env.BOT_TOKEN);
