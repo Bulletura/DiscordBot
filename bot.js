@@ -97,16 +97,11 @@ client.on('userUpdate', (oldUser,newUser) => {
         return;
     }
     if(oldUser.id == "793288364299124766"){
-        Bulletura.send("Nouvelle photo de profil de Paulin :");
-        Bulletura.send(newUser.displayAvatarURL());
-        Renaud.send("Nouvelle photo de profil de Paulin :");
-        Renaud.send(newUser.displayAvatarURL());
-        Max.send("Nouvelle photo de profil de Paulin :");
-        Max.send(newUser.displayAvatarURL());
-        Naiiver.send("Nouvelle photo de profil de Paulin :");
-        Naiiver.send(newUser.displayAvatarURL());
-        Kinof.send("Nouvelle photo de profil de Paulin :");
-        Kinof.send(newUser.displayAvatarURL());
+        Bulletura.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
+        Renaud.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
+        Max.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
+        Naiiver.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
+        Kinof.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
     }
     if(oldUser.id == Bulletura.id){
         console.log(newUser);
