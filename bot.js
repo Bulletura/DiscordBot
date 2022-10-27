@@ -93,6 +93,7 @@ client.on('userUpdate', (oldUser,newUser) => {
     let Max = client.users.cache.find(user => user.id == "347818967831805952");
     let Naiiver = client.users.cache.find(user => user.id == "163789689793413122");
     let Kinof = client.users.cache.find(user => user.id == "224158035390496791");
+    let GroupePaulin = client.users.cache.find(user => user.id == "1035250267878346782");
     if(oldUser == null){
         return;
     }
@@ -102,6 +103,7 @@ client.on('userUpdate', (oldUser,newUser) => {
         Max.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
         Naiiver.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
         Kinof.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
+        GroupePaulin.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
     }
     if(oldUser.id == Bulletura.id){
         console.log(newUser);
