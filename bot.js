@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, PartialGroupDMChannel } = require('discord.js');
 require("dotenv").config();
 const fetch = require('node-fetch');
 
@@ -7,6 +7,8 @@ const fetch = require('node-fetch');
 // const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
 // Create a new client instance
+
+
 const client = new Client({ intents: [
                                         GatewayIntentBits.Guilds, 
                                         GatewayIntentBits.GuildMessages, 
@@ -87,13 +89,12 @@ client.on('messageCreate', message => {
 // })
 
 client.on('userUpdate', (oldUser,newUser) => {
-    
     let Bulletura = client.users.cache.find(user => user.id == '356512651150360577');
     let Renaud = client.users.cache.find(user => user.id == '250738681197887489');
     let Max = client.users.cache.find(user => user.id == "347818967831805952");
     let Naiiver = client.users.cache.find(user => user.id == "163789689793413122");
     let Kinof = client.users.cache.find(user => user.id == "224158035390496791");
-    let GroupePaulin = client.users.cache.find(user => user.id == "1035250267878346782");
+    
     if(oldUser == null){
         return;
     }
@@ -103,7 +104,6 @@ client.on('userUpdate', (oldUser,newUser) => {
         Max.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
         Naiiver.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
         Kinof.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
-        GroupePaulin.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
     }
     if(oldUser.id == Bulletura.id){
         console.log(newUser);
@@ -135,9 +135,9 @@ client.on('presenceUpdate', (oldUser,newUser) => {
         return;
     }
     if(oldUser.id == "250738681197887489" || oldUser.id == Bulletura.id){
-        console.log(newUser);
-        console.log("presenceUpdate");
-        console.log(newUser);
+        // console.log(newUser);
+        // console.log("presenceUpdate");
+        // console.log(newUser);
         
     }
 })
