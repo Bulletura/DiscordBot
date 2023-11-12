@@ -1,10 +1,7 @@
 // Require the necessary discord.js classes
-const { Client, GatewayIntentBits, PartialGroupDMChannel, Intents, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Partials} = require('discord.js');
 require("dotenv").config();
 const fetch = require('node-fetch');
-
-// const eventsPath = path.join(__dirname,'events');
-// const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
 // Create a new client instance
 
@@ -29,37 +26,18 @@ client.once('ready', c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
-client.on('messageCreate', async (message) => {
-    console.log(message);
-    // console.log(message.content.slice(0,4));
-    if(message.content.slice(0,5) == '!kda '){
-        let summonerName = message.content.substring(5);
-        try{
-            const summonerData = await fetch("https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/"+summonerName+"?api_key="+process.env.RIOT_API_TOKEN);
-            const summonerDataJson = await summonerData.json();
-            const summonerPUUID = summonerDataJson['puuid'];
-            const matchIds = await fetch("https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/"+summonerPUUID+"/ids?start=0&count=20&api_key="+process.env.RIOT_API_TOKEN);
-            const matchIdsJson = await matchIds.json();
-            Object.values(matchIdsJson).forEach(matchId => {
-                
-            });
-            const match = await fetch("https://europe.api.riotgames.com/lol/match/v5/matches/EUW1_6080010855?api_key="+process.env.RIOT_API_TOKEN);
-            const matchJson = await match.json();
-            let summonerGameData;
-            console.log(matchJson['info']['participants'][0]['puuid']);
-            Object.entries(matchJson['info']['participants']).forEach(entry => {
-                const [key, value] = entry;
-                console.log(value['puuid']);
-                if(value['puuid'] == summonerPUUID){
-                    summonerGameData = value;
-                }
-            })
-            message.channel.send(message.content.substring(5)+" KDA avec "+summonerGameData['championName']+" : "+summonerGameData['kills']+'/'+summonerGameData['deaths']+'/'+summonerGameData['assists']);
-        } catch(error){
-            
+client.on("interactionCreate", async interaction => {
+    if(!interaction.isCommand()) return;
+
+    const { commandName } = interaction;
+
+    if(commandName === "lp") {
+
+        if(interaction.options.get("input").value == null){
+            interaction.reply("Summoner's name can't be empty")
         }
-    } else if(message.content.slice(0,4) === "!lp "){
-        let summonerName = message.content.substring(4);
+
+        const summonerName = interaction.options.get("input").value
         try {
             const summonerData = await fetch("https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/"+summonerName, {
                 method: "GET",
@@ -67,6 +45,12 @@ client.on('messageCreate', async (message) => {
                     "X-Riot-Token": process.env.RIOT_API_TOKEN,
                 },
             });
+
+            if(!summonerData.ok){
+                interaction.reply(`The summoner \`${summonerName}\` doesn't exist`)
+                return;
+            }
+            
             const summonerDataJson = await summonerData.json();
             const summonerID = summonerDataJson['id'];
             const summonerRankData = await fetch("https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/"+summonerID, {
@@ -76,15 +60,43 @@ client.on('messageCreate', async (message) => {
                 }
             });
             const summonerRankDataJSON = await summonerRankData.json();
-            let result = summonerRankDataJSON.filter((data) => data["queueType"] == "RANKED_SOLO_5x5")[0]
-            // summonerRankDataJSON = summonerRankDataJSON.filter((data) => data["queueType"] == "RANKED_SOLO_5x5")
-            console.log(result["leaguePoints"])
-            message.channel.send(`Rank de ${result["summonerName"]} : ${result["tier"]} ${result["rank"]} / ${result["leaguePoints"]}LP`);
-        } catch(error) {
+            let result = [];
+            result["Ranked_Solo"] = summonerRankDataJSON.filter((data) => data["queueType"] == "RANKED_SOLO_5x5")[0]
+            result["Ranked_Flex"] = summonerRankDataJSON.filter((data) => data["queueType"] == "RANKED_FLEX_SR")[0]
 
+            let messageEmbed = {
+                color: 0x4752c4,
+                title: result["Ranked_Solo"]["summonerName"],
+                description: "Statistiques de " + result["Ranked_Solo"]["summonerName"],
+                timestamp: new Date().toISOString(),
+                thumbnail: {
+                    url: `https://ddragon.leagueoflegends.com/cdn/13.22.1/img/profileicon/${summonerDataJson['profileIconId']}.png`,
+                },
+                fields: [
+                    {
+                        name: '\u200b',
+                        value: '\u200b',
+                        inline: false,
+                    },
+                    {
+                        name: "Solo/Duo",
+                        value: result["Ranked_Solo"]["tier"] + " " + result["Ranked_Solo"]["rank"] + "/" + result["Ranked_Solo"]["leaguePoints"] + "LP",
+                        inline: true,
+                    },
+                    {
+                        name: "Flex",
+                        value: result["Ranked_Flex"]["tier"] + " " + result["Ranked_Flex"]["rank"] + "/" + result["Ranked_Flex"]["leaguePoints"] + "LP",
+                        inline: true,
+                    }
+                ]
+            }
+            
+            interaction.reply({embeds: [messageEmbed]})
+        } catch(error) {
+            console.error(error)
         }
     }
-});
+})
 
 client.on('messageCreate', message => {
     if(message.guild === null){
@@ -110,66 +122,6 @@ client.on('messageCreate', message => {
         message.channel.send(newMessage);
     }
 });
-
-// client.on('typingStart', async typing => {
-//     if(typing.user.id == '250738681197887489'){
-//         // typing.channel.send('Ta gueule Renaud !');
-//     };
-// })
-
-client.on('userUpdate', (oldUser,newUser) => {
-    let Bulletura = client.users.cache.find(user => user.id == '356512651150360577');
-    let Renaud = client.users.cache.find(user => user.id == '250738681197887489');
-    let Max = client.users.cache.find(user => user.id == "347818967831805952");
-    let Naiiver = client.users.cache.find(user => user.id == "163789689793413122");
-    let Kinof = client.users.cache.find(user => user.id == "224158035390496791");
-    
-    if(oldUser == null){
-        return;
-    }
-    if(oldUser.id == "793288364299124766"){
-        Bulletura.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
-        Renaud.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
-        Max.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
-        Naiiver.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
-        Kinof.send("Nouvelle photo de profil de Paulin :\n"+newUser.displayAvatarURL());
-    }
-    if(oldUser.id == Bulletura.id){
-        console.log(newUser);
-    }
-})
-client.on('guildMemberUpdate', (oldUser,newUser) => {
-    let Bulletura = client.users.cache.find(user => user.id == '356512651150360577');
-    let Renaud = client.users.cache.find(user => user.id == '250738681197887489');
-    if(oldUser.id == "250738681197887489"){
-        console.log(newUser);
-        if(newUser.avatar != null){
-            Bulletura.send(newUser.avatar);
-            Renaud.send(newUser.avatar);
-        }
-        if(newUser.nickname == null){
-
-            // Bulletura.send(newUser.user.username);
-        } else{
-            // Bulletura.send(newUser.nickname)
-        }
-        
-    }
-})
-client.on('presenceUpdate', (oldUser,newUser) => {
-    
-    let Bulletura = client.users.cache.find(user => user.id == '356512651150360577');
-    let Renaud = client.users.cache.find(user => user.id == '250738681197887489');
-    if(oldUser == null){
-        return;
-    }
-    if(oldUser.id == "250738681197887489" || oldUser.id == Bulletura.id){
-        // console.log(newUser);
-        // console.log("presenceUpdate");
-        // console.log(newUser);
-        
-    }
-})
 
 // Login to Discord with your client's token
 client.login(process.env.BOT_TOKEN);
