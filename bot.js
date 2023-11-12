@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-const { Client, GatewayIntentBits, PartialGroupDMChannel } = require('discord.js');
+const { Client, GatewayIntentBits, PartialGroupDMChannel, Intents, Partials } = require('discord.js');
 require("dotenv").config();
 const fetch = require('node-fetch');
 
@@ -17,8 +17,12 @@ const client = new Client({ intents: [
                                         GatewayIntentBits.DirectMessageTyping,
                                         GatewayIntentBits.GuildMessageTyping,
                                         GatewayIntentBits.GuildMembers,
-                                        GatewayIntentBits.GuildPresences
-                                    ] });
+                                        GatewayIntentBits.GuildPresences,
+                                    ],
+                                partials: [
+                                    Partials.Channel,
+                                    Partials.Message
+                                ] });
                                     
 
 client.once('ready', c => {
@@ -26,7 +30,8 @@ client.once('ready', c => {
 });
 
 client.on('messageCreate', async (message) => {
-    
+    console.log(message);
+    // console.log(message.content.slice(0,4));
     if(message.content.slice(0,5) == '!kda '){
         let summonerName = message.content.substring(5);
         try{
@@ -49,10 +54,34 @@ client.on('messageCreate', async (message) => {
                     summonerGameData = value;
                 }
             })
-            console.log(summonerGameData);
             message.channel.send(message.content.substring(5)+" KDA avec "+summonerGameData['championName']+" : "+summonerGameData['kills']+'/'+summonerGameData['deaths']+'/'+summonerGameData['assists']);
         } catch(error){
             
+        }
+    } else if(message.content.slice(0,4) === "!lp "){
+        let summonerName = message.content.substring(4);
+        try {
+            const summonerData = await fetch("https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/"+summonerName, {
+                method: "GET",
+                headers: {
+                    "X-Riot-Token": process.env.RIOT_API_TOKEN,
+                },
+            });
+            const summonerDataJson = await summonerData.json();
+            const summonerID = summonerDataJson['id'];
+            const summonerRankData = await fetch("https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/"+summonerID, {
+                method: "GET",
+                headers: {
+                    "X-Riot-Token": process.env.RIOT_API_TOKEN,
+                }
+            });
+            const summonerRankDataJSON = await summonerRankData.json();
+            let result = summonerRankDataJSON.filter((data) => data["queueType"] == "RANKED_SOLO_5x5")[0]
+            // summonerRankDataJSON = summonerRankDataJSON.filter((data) => data["queueType"] == "RANKED_SOLO_5x5")
+            console.log(result["leaguePoints"])
+            message.channel.send(`Rank de ${result["summonerName"]} : ${result["tier"]} ${result["rank"]} / ${result["leaguePoints"]}LP`);
+        } catch(error) {
+
         }
     }
 });
